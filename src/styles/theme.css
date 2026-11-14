@@ -1,0 +1,183 @@
+/* ============================================================
+   MarkDownReader 主题系统
+   - CSS 变量承载全部颜色/字体，切换主题只改 data-theme
+   - 明暗两套配色取自 GitHub 色板（对 Markdown 内容观感最佳）
+   ============================================================ */
+
+:root {
+  /* 色板（浅色） */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f6f8fa;
+  --bg-tertiary: #eff2f5;
+  --border-color: #d1d9e0;
+  --text-primary: #1f2328;
+  --text-secondary: #59636e;
+  --text-muted: #8c959f;
+  --accent: #0969da;
+  --accent-soft: rgba(9, 105, 218, 0.1);
+
+  /* 字体 */
+  --font-ui: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+  --font-reading: var(--font-ui);
+  --font-mono: "Cascadia Code", Consolas, "JetBrains Mono", "Courier New", monospace;
+
+  /* 尺寸 */
+  --toolbar-height: 44px;
+  --statusbar-height: 26px;
+  --radius-md: 6px;
+}
+
+:root[data-theme="dark"] {
+  --bg-primary: #0d1117;
+  --bg-secondary: #151b23;
+  --bg-tertiary: #212936;
+  --border-color: #2f3742;
+  --text-primary: #e6edf3;
+  --text-secondary: #9198a1;
+  --text-muted: #6e7681;
+  --accent: #4493f8;
+  --accent-soft: rgba(68, 147, 248, 0.15);
+}
+
+/* ---- 基础重置 ---- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- 整体布局 ---- */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ---- 顶部工具栏 ---- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--toolbar-height);
+  padding: 0 14px;
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  user-select: none;
+}
+
+.toolbar__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.toolbar__title {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.toolbar__hint {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ---- 中部工作区 ---- */
+.workspace {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.workspace__pane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+}
+
+.workspace__divider {
+  width: 1px;
+  flex-shrink: 0;
+  background: var(--border-color);
+}
+
+.placeholder {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 2;
+}
+
+.placeholder small {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ---- 底部状态栏 ---- */
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--statusbar-height);
+  padding: 0 12px;
+  flex-shrink: 0;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  user-select: none;
+}
+
+.statusbar__spacer {
+  flex: 1;
+}
+
+/* ---- 滚动条 ---- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
