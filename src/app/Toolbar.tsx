@@ -20,6 +20,7 @@ export default function Toolbar() {
   const openPath = useAppStore((state) => state.openPath);
   const save = useAppStore((state) => state.save);
   const setSettingsOpen = useAppStore((state) => state.setSettingsOpen);
+  const setAboutOpen = useAppStore((state) => state.setAboutOpen);
 
   const canSave = dirty || filePath == null;
 
@@ -60,6 +61,9 @@ export default function Toolbar() {
           onClick={() => setSettingsOpen(true)}
         >
           ⚙
+        </button>
+        <button className="toolbar__btn" title={t("about")} onClick={() => setAboutOpen(true)}>
+          ⓘ
         </button>
       </div>
     </header>

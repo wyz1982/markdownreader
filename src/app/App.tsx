@@ -9,6 +9,7 @@ import PreviewPane from "./PreviewPane";
 import OutlinePanel from "./OutlinePanel";
 import ChangedBanner from "./ChangedBanner";
 import SettingsDialog from "./SettingsDialog";
+import AboutDialog from "./AboutDialog";
 import EditorPane from "../editor/EditorPane";
 import { useT } from "../i18n";
 import "../styles/app.css";
@@ -92,11 +93,13 @@ export default function App() {
     };
   }, [setRecentFiles]);
 
-  // 快捷键：Ctrl+S 保存 / Ctrl+O 打开 / Esc 关闭设置对话框
+  // 快捷键：Ctrl+S 保存 / Ctrl+O 打开 / Esc 关闭对话框
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        useAppStore.getState().setSettingsOpen(false);
+        const state = useAppStore.getState();
+        state.setSettingsOpen(false);
+        state.setAboutOpen(false);
         return;
       }
       if (!event.ctrlKey) return;
@@ -175,6 +178,7 @@ export default function App() {
       </footer>
 
       <SettingsDialog />
+      <AboutDialog />
     </div>
   );
 }

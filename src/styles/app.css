@@ -356,6 +356,54 @@
   margin-top: 14px;
 }
 
+/* ---- 关于对话框 ---- */
+.dialog--about {
+  width: 380px;
+  text-align: center;
+}
+
+.about__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #1f6feb, #0754a8);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.about__name {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.about__version {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 2px 0 12px;
+}
+
+.about__desc {
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.about__tech {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.about__repo {
+  margin-bottom: 6px;
+}
+
 /* ---- 阅读模式排版 ---- */
 .markdown-body--read {
   max-width: 860px;

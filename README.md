@@ -1,52 +1,81 @@
 # MarkDownReader
 
-Windows 轻量级 Markdown 编辑器 + 阅读器。目标是：安装包小、启动快、内存低，同时做到「最新语法 100% 兼容、完美渲染」。
+Windows 轻量级 Markdown 编辑器 + 阅读器。安装包小、启动快、内存低，同时做到「最新语法 100% 兼容、完美渲染」。
 
-- 完整规划见 [PLAN.md](./PLAN.md)
-- 技术栈：**Tauri 2 + TypeScript + React 19 + CodeMirror 6（M3）+ markdown-it（M1）**
+- 开发规划：[PLAN.md](./PLAN.md)
+- 技术栈：**Tauri 2 · TypeScript · React 19 · CodeMirror 6 · markdown-it**
 
-## 开发环境要求
+## 功能
 
-| 依赖 | 说明 |
-|---|---|
-| Node.js ≥ 20 + pnpm | 前端构建（本机 Node 24 + pnpm 12） |
-| Rust stable (MSVC) | 应用壳编译（rustup 安装，需 VS Build Tools） |
-| WebView2 运行时 | Win10 1809+ / Win11 系统自带 |
+- **渲染引擎**：CommonMark 0.31.2 规范测试套件 **652 例 100% 通过** + GFM 全部扩展 + KaTeX 公式 / Shiki 代码高亮 / Mermaid 图表 / 脚注 / 提示容器 / 任务列表 / Front Matter / [TOC] / Emoji / 内嵌 HTML（DOMPurify 消毒）
+- **编辑器**：CodeMirror 6，行号 / 当前行高亮 / 搜索替换 / 列表自动续写 / 格式工具栏（Ctrl+B/I/K）
+- **分栏同步**：源码与预览基于 `token.map` 行号映射的**双向滚动同步**
+- **阅读模式**：大纲侧栏 scroll-spy + 点击跳转，排版宽度优化
+- **文件管理**：打开对话框 / 拖拽 / `.md` 文件关联双击（安装后）/ 最近文件（持久化）
+- **编码兼容**：UTF-8 / UTF-8 BOM / UTF-16 / GBK / GB18030 自动检测
+- **安全写入**：原子写（临时文件 + rename），外部修改监视与重载提示
+- **导出**：单文件 HTML（内联样式 + KaTeX 字体 base64，离线可用）/ PDF（系统打印）
+- **个性化**：明暗主题（跟随系统/强制）、正文字号行高、衬线/无衬线、编辑器字号；中英双语界面
+
+## 性能基准（Release 1.0.0，实测）
+
+| 指标 | 目标 | 实测 |
+|---|---|---|
+| NSIS 安装包体积 | ≤ 15 MB | **5.74 MiB** |
+| 冷启动（主窗口出现） | ≤ 1 s | **143 ms** |
+| 热启动 | — | **151 ms** |
+| 空载内存 | ≤ 150 MB | **34 MB** |
+
+## 构建
+
+```bash
+pnpm install
+pnpm tauri dev      # 开发调试
+pnpm tauri build    # 产物: src-tauri/target/release/bundle/nsis/*-setup.exe
+```
+
+NSIS 安装包（per-user 安装，无需管理员）会注册 `.md/.markdown/.mdown/.mkd` 文件关联。
 
 ## 常用命令
 
 ```bash
-pnpm install        # 安装前端依赖
-pnpm dev            # 仅前端：浏览器里调试渲染引擎（M1 起常用）
-pnpm tauri dev      # 完整应用：编译 Rust 壳并启动桌面窗口
+pnpm dev            # 仅前端：浏览器里调试渲染引擎
 pnpm build          # TS 类型检查 + 前端产物构建
-pnpm lint           # ESLint 检查
-pnpm format         # Prettier 格式化
+pnpm test           # 全部测试（规范/扩展/快照/单测，696 例）
+pnpm lint           # ESLint
+pnpm format         # Prettier
 ```
 
-Rust 侧在 `src-tauri/` 内：`cargo check`（快速检查）/ `cargo clippy`（静态分析）。
+Rust 侧在 `src-tauri/` 内：`cargo check` / `cargo clippy` / `cargo fmt`。
+
+## 测试体系
+
+- **规范符合性**：从官方 `spec.txt` 生成的 CommonMark 0.31.2 全量 652 例（`scripts/gen-spec-json.mjs`）
+- **扩展语法**：14 例 + GFM 5 例 + 完整样例渲染快照（防回归）
+- **单元测试**：列表续写 / 块级行号映射 / 格式化操作 / 最近文件去重 / i18n 完整性 / 导出 HTML 结构
 
 ## 目录结构
 
 ```
 src/                  # 前端 (TS + React)
-  app/                # 应用布局与界面状态
-  editor/             # CodeMirror 6 封装（M3）
-  renderer/           # markdown 渲染管线（M1）
-  styles/             # 主题变量与排版
+  app/                # 布局、状态(Zustand)、设置、导出、i18n
+  editor/             # CodeMirror 6 封装、滚动同步、格式化
+  renderer/           # markdown 渲染管线（纯模块，不依赖 Tauri）
+  styles/             # 主题变量、排版、打印样式
   ipc.ts              # Rust 命令的类型化封装
 src-tauri/            # Rust 壳
-  src/commands.rs     # 文件读写 IPC（编码检测 / 原子写入）
-  src/encoding.rs     # UTF-8/GBK/UTF-16 自动解码
-tests/                # 规范测试与快照（M1）
+  src/commands.rs     # 文件读写 / 监视 / 图片落盘 IPC
+  src/encoding.rs     # 编码自动检测
+tests/                # 696 例测试
+scripts/              # 图标生成 / 规范测试集生成 / 基准测量
 PLAN.md               # 开发规划与里程碑
 ```
 
-## 里程碑进度
+## 里程碑
 
-- [x] **M0** 环境准备 + 脚手架（Tauri 2.12 / React 19 / Vite 8 / ESLint / IPC 命令占位）
-- [ ] **M1** 渲染引擎（markdown-it 全插件链 + KaTeX/Shiki/Mermaid + 规范测试）
-- [ ] **M2** 阅读器（打开文件 / 大纲侧栏 / 文件关联 / 编码兼容）
-- [ ] **M3** 编辑器（CodeMirror 6 + 分栏双向滚动同步）
-- [ ] **M4** 体验完善（设置页 / 导出 HTML+PDF / i18n）
-- [ ] **M5** 打磨发布（NSIS 安装包 + 文件关联 + 性能基准）
+- [x] **M0** 环境准备 + 脚手架
+- [x] **M1** 渲染引擎（规范测试 652 例 100%）
+- [x] **M2** 阅读器（文件关联 / 大纲侧栏 / 编码兼容）
+- [x] **M3** 编辑器（CodeMirror 6 + 分栏双向同步）
+- [x] **M4** 体验完善（设置页 / 导出 / i18n）
+- [x] **M5** 打磨发布（NSIS 1.0.0 / 图标 / 性能基准）

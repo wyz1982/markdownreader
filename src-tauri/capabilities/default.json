@@ -7,6 +7,8 @@
     "core:default",
     "core:window:allow-set-focus",
     "core:window:allow-set-title",
+    "core:app:allow-version",
+    "core:app:allow-name",
     "opener:default",
     "dialog:default",
     "store:default"

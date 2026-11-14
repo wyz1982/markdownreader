@@ -36,6 +36,7 @@ interface AppState {
   /** 应用设置（持久化到 settings.json） */
   settings: AppSettings;
   settingsOpen: boolean;
+  aboutOpen: boolean;
   /** 解析后的实际主题（system 模式下跟随系统） */
   resolvedTheme: "light" | "dark";
   editorView: EditorView | null;
@@ -59,6 +60,7 @@ interface AppState {
   initSettings(settings: AppSettings): void;
   setSettings(patch: Partial<AppSettings>): void;
   setSettingsOpen(open: boolean): void;
+  setAboutOpen(open: boolean): void;
   setResolvedTheme(theme: "light" | "dark"): void;
   setEditorView(view: EditorView | null): void;
 }
@@ -89,6 +91,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   cursor: null,
   settings: DEFAULT_SETTINGS,
   settingsOpen: false,
+  aboutOpen: false,
   resolvedTheme: "light",
   editorView: null,
   changedOnDisk: false,
@@ -205,6 +208,9 @@ export const useAppStore = create<AppState>()((set, get) => ({
   },
   setSettingsOpen(settingsOpen) {
     set({ settingsOpen });
+  },
+  setAboutOpen(aboutOpen) {
+    set({ aboutOpen });
   },
   setResolvedTheme(resolvedTheme) {
     set({ resolvedTheme });

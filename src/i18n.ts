@@ -57,6 +57,11 @@ const zh = {
   fmtOl: "有序列表",
   fmtHr: "分割线",
   saveImageFirst: "请先保存文档（Ctrl+S）后再粘贴图片",
+  about: "关于",
+  aboutVersion: "版本",
+  aboutDesc: "Windows 轻量级 Markdown 编辑器 + 阅读器",
+  aboutTech: "Tauri 2 · React 19 · CodeMirror 6 · markdown-it · CommonMark 0.31.2 兼容",
+  aboutRepo: "GitHub 仓库",
 } as const;
 
 type Dict = Record<keyof typeof zh, string>;
@@ -114,6 +119,11 @@ const en: Dict = {
   fmtOl: "Numbered list",
   fmtHr: "Horizontal rule",
   saveImageFirst: "Save the document (Ctrl+S) before pasting images",
+  about: "About",
+  aboutVersion: "Version",
+  aboutDesc: "A lightweight Markdown editor & reader for Windows",
+  aboutTech: "Tauri 2 · React 19 · CodeMirror 6 · markdown-it · CommonMark 0.31.2 compliant",
+  aboutRepo: "GitHub repository",
 };
 
 const DICT: Record<Locale, Dict> = { "zh-CN": zh, en };
