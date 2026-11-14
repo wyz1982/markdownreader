@@ -1,21 +1,25 @@
 import { openFileDialog } from "../ipc";
 import { useAppStore } from "./store";
+import { useT } from "../i18n";
 import RecentMenu from "./RecentMenu";
+import ExportMenu from "./ExportMenu";
 
 const MODES = [
-  { value: "read", label: "阅读" },
-  { value: "split", label: "分栏" },
-  { value: "edit", label: "编辑" },
+  { value: "read", labelKey: "read" },
+  { value: "split", labelKey: "split" },
+  { value: "edit", labelKey: "edit" },
 ] as const;
 
-/** 顶部工具栏：三态布局切换 / 打开 / 保存 / 最近文件 */
+/** 顶部工具栏：三态布局切换 / 打开 / 保存 / 导出 / 最近 / 设置 */
 export default function Toolbar() {
+  const { t } = useT();
   const mode = useAppStore((state) => state.mode);
   const dirty = useAppStore((state) => state.dirty);
   const filePath = useAppStore((state) => state.filePath);
   const setMode = useAppStore((state) => state.setMode);
   const openPath = useAppStore((state) => state.openPath);
   const save = useAppStore((state) => state.save);
+  const setSettingsOpen = useAppStore((state) => state.setSettingsOpen);
 
   const canSave = dirty || filePath == null;
 
@@ -31,7 +35,7 @@ export default function Toolbar() {
               className={`toolbar__mode${mode === item.value ? " toolbar__mode--active" : ""}`}
               onClick={() => setMode(item.value)}
             >
-              {item.label}
+              {t(item.labelKey)}
             </button>
           ))}
         </div>
@@ -43,12 +47,20 @@ export default function Toolbar() {
             })
           }
         >
-          打开
+          {t("open")}
         </button>
         <button className="toolbar__btn" onClick={() => void save()} disabled={!canSave}>
-          保存
+          {t("save")}
         </button>
+        <ExportMenu />
         <RecentMenu />
+        <button
+          className="toolbar__btn"
+          title={t("settings")}
+          onClick={() => setSettingsOpen(true)}
+        >
+          ⚙
+        </button>
       </div>
     </header>
   );

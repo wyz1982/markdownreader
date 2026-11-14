@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dedupeRecents } from "../../src/app/recent";
+import { dedupeRecents } from "../../src/app/persist";
 
 describe("最近文件列表去重", () => {
   it("新文件插入最前", () => {

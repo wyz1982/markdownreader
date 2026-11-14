@@ -12,6 +12,8 @@ export default defineConfig(() => ({
   test: {
     environment: "jsdom",
     include: ["tests/**/*.spec.ts"],
+    // 真实处理 CSS 导入：单文件 HTML 导出依赖 ?inline 的样式字符串
+    css: true,
   },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

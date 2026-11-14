@@ -1,4 +1,4 @@
-// 应用全局状态（Zustand）：文件、编辑、模式、大纲、最近文件、磁盘变更提示
+// 应用全局状态（Zustand）：文件、编辑、模式、大纲、最近文件、设置、磁盘变更提示
 import { create } from "zustand";
 import type { EditorView } from "@codemirror/view";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -12,7 +12,13 @@ import {
   watchFile,
 } from "../ipc";
 import { imageExtFromMime, pasteImageName } from "../editor/imagePaste";
-import { pushRecentFile } from "./recent";
+import {
+  applyReadingVars,
+  DEFAULT_SETTINGS,
+  pushRecentFile,
+  saveSettings,
+  type AppSettings,
+} from "./persist";
 
 export type AppMode = "read" | "split" | "edit";
 
@@ -27,6 +33,12 @@ interface AppState {
   activeSlug: string | null;
   recentFiles: string[];
   cursor: { line: number; col: number } | null;
+  /** 应用设置（持久化到 settings.json） */
+  settings: AppSettings;
+  settingsOpen: boolean;
+  /** 解析后的实际主题（system 模式下跟随系统） */
+  resolvedTheme: "light" | "dark";
+  editorView: EditorView | null;
   /** 文件在磁盘上被外部修改（显示重载提示条） */
   changedOnDisk: boolean;
   error: string | null;
@@ -44,6 +56,11 @@ interface AppState {
   setCursor(cursor: { line: number; col: number } | null): void;
   setRecentFiles(list: string[]): void;
   dismissChanged(): void;
+  initSettings(settings: AppSettings): void;
+  setSettings(patch: Partial<AppSettings>): void;
+  setSettingsOpen(open: boolean): void;
+  setResolvedTheme(theme: "light" | "dark"): void;
+  setEditorView(view: EditorView | null): void;
 }
 
 export function fileNameOf(path: string): string {
@@ -70,6 +87,10 @@ export const useAppStore = create<AppState>()((set, get) => ({
   activeSlug: null,
   recentFiles: [],
   cursor: null,
+  settings: DEFAULT_SETTINGS,
+  settingsOpen: false,
+  resolvedTheme: "light",
+  editorView: null,
   changedOnDisk: false,
   error: null,
   suppressChangedUntil: 0,
@@ -170,6 +191,26 @@ export const useAppStore = create<AppState>()((set, get) => ({
   },
   dismissChanged() {
     set({ changedOnDisk: false });
+  },
+
+  initSettings(settings) {
+    applyReadingVars(settings);
+    set({ settings });
+  },
+  setSettings(patch) {
+    const settings = { ...get().settings, ...patch };
+    applyReadingVars(settings);
+    set({ settings });
+    void saveSettings(settings);
+  },
+  setSettingsOpen(settingsOpen) {
+    set({ settingsOpen });
+  },
+  setResolvedTheme(resolvedTheme) {
+    set({ resolvedTheme });
+  },
+  setEditorView(editorView) {
+    set({ editorView });
   },
 }));
 

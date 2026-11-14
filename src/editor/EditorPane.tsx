@@ -3,8 +3,10 @@ import type { EditorView } from "@codemirror/view";
 import { useAppStore } from "../app/store";
 import { createMarkdownEditor } from "./cmSetup";
 import { handleEditorScroll, registerEditorView } from "./scrollSync";
+import FormatBar from "../app/FormatBar";
+import { translate } from "../i18n";
 
-/** 编辑器面板：CodeMirror 6 实例的 React 壳 */
+/** 编辑器面板：CodeMirror 6 实例的 React 壳（含格式工具栏） */
 export default function EditorPane() {
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -16,10 +18,19 @@ export default function EditorPane() {
     const view = createMarkdownEditor(host, useAppStore.getState().source, {
       onDocChange: (text) => useAppStore.getState().setSource(text),
       onCursor: (line, col) => useAppStore.getState().setCursor({ line, col }),
-      onPasteImage: (file) => void useAppStore.getState().savePastedImage(file, view),
+      onPasteImage: (file) => {
+        const state = useAppStore.getState();
+        // 无文件路径时先给本地化提示，再走 store 的兜底
+        if (!state.filePath) {
+          useAppStore.setState({ error: translate(state.settings.locale, "saveImageFirst") });
+          return;
+        }
+        void state.savePastedImage(file, view);
+      },
     });
     viewRef.current = view;
     registerEditorView(view);
+    useAppStore.getState().setEditorView(view);
 
     const scrollEl = view.scrollDOM;
     const onScroll = () => handleEditorScroll();
@@ -47,10 +58,16 @@ export default function EditorPane() {
       unsubscribe();
       scrollEl.removeEventListener("scroll", onScroll);
       registerEditorView(null);
+      useAppStore.getState().setEditorView(null);
       view.destroy();
       viewRef.current = null;
     };
   }, []);
 
-  return <div className="editor-host" ref={hostRef} />;
+  return (
+    <div className="editor-col">
+      <FormatBar />
+      <div className="editor-host" ref={hostRef} />
+    </div>
+  );
 }

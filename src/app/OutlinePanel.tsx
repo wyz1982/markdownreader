@@ -1,9 +1,11 @@
 import { useAppStore } from "./store";
+import { useT } from "../i18n";
 
 /** 大纲侧栏：标题列表 + 当前阅读位置高亮 + 点击跳转 */
 export default function OutlinePanel() {
   const outline = useAppStore((state) => state.outline);
   const activeSlug = useAppStore((state) => state.activeSlug);
+  const { t } = useT();
 
   const jumpTo = (slug: string) => {
     document.getElementById(slug)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -11,9 +13,9 @@ export default function OutlinePanel() {
 
   return (
     <aside className="outline-panel">
-      <div className="outline-panel__title">大纲</div>
+      <div className="outline-panel__title">{t("outline")}</div>
       {outline.length === 0 ? (
-        <div className="outline-panel__empty">（暂无标题）</div>
+        <div className="outline-panel__empty">{t("outlineEmpty")}</div>
       ) : (
         <nav className="outline-panel__list">
           {outline.map((item) => (
@@ -29,7 +31,7 @@ export default function OutlinePanel() {
               onClick={() => jumpTo(item.slug)}
               title={item.text}
             >
-              {item.text || "(无标题)"}
+              {item.text || t("untitled")}
             </button>
           ))}
         </nav>

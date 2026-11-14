@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { fileNameOf, useAppStore } from "./store";
+import { useT } from "../i18n";
 
 /** 最近文件下拉菜单 */
 export default function RecentMenu() {
@@ -7,6 +8,7 @@ export default function RecentMenu() {
   const openPath = useAppStore((state) => state.openPath);
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const { t } = useT();
 
   useEffect(() => {
     if (!open) return;
@@ -24,7 +26,7 @@ export default function RecentMenu() {
         onClick={() => setOpen((value) => !value)}
         disabled={recentFiles.length === 0}
       >
-        最近 ▾
+        {t("recent")} ▾
       </button>
       {open && (
         <ul className="recent-menu__list">

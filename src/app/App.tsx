@@ -2,13 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { getLaunchArgs, openFileDialog } from "../ipc";
-import { loadRecentFiles } from "./recent";
+import { loadRecentFiles, loadSettings } from "./persist";
 import { notifyFileChanged, useAppStore } from "./store";
 import Toolbar from "./Toolbar";
 import PreviewPane from "./PreviewPane";
 import OutlinePanel from "./OutlinePanel";
 import ChangedBanner from "./ChangedBanner";
+import SettingsDialog from "./SettingsDialog";
 import EditorPane from "../editor/EditorPane";
+import { useT } from "../i18n";
 import "../styles/app.css";
 
 type Theme = "light" | "dark";
@@ -20,26 +22,27 @@ function pickMarkdownPath(paths: string[] | null | undefined): string | null {
   return paths?.find((path) => MARKDOWN_PATH_RE.test(path)) ?? null;
 }
 
-/** 跟随系统的明暗主题（设置页做好后可手动覆盖） */
-function useFollowSystemTheme(): Theme {
-  const [theme, setTheme] = useState<Theme>(() =>
+/** 按设置解析主题：跟随系统 / 强制明暗 */
+function useResolvedTheme(): Theme {
+  const themeMode = useAppStore((state) => state.settings.themeMode);
+  const [systemTheme, setSystemTheme] = useState<Theme>(() =>
     window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
   );
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = (event: MediaQueryListEvent) => {
-      setTheme(event.matches ? "dark" : "light");
+      setSystemTheme(event.matches ? "dark" : "light");
     };
     query.addEventListener("change", onChange);
     return () => query.removeEventListener("change", onChange);
   }, []);
 
-  return theme;
+  return themeMode === "system" ? systemTheme : themeMode;
 }
 
 export default function App() {
-  const theme = useFollowSystemTheme();
+  const theme = useResolvedTheme();
   const mode = useAppStore((state) => state.mode);
   const source = useAppStore((state) => state.source);
   const dirty = useAppStore((state) => state.dirty);
@@ -49,16 +52,19 @@ export default function App() {
   const cursor = useAppStore((state) => state.cursor);
   const error = useAppStore((state) => state.error);
   const setRecentFiles = useAppStore((state) => state.setRecentFiles);
+  const { t, tf } = useT();
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    useAppStore.getState().setResolvedTheme(theme);
   }, [theme]);
 
-  // 初始化：最近文件、启动参数（文件关联）、单实例转发、磁盘变更、拖拽
+  // 初始化：设置、最近文件、启动参数（文件关联）、单实例转发、磁盘变更、拖拽
   useEffect(() => {
     let disposed = false;
 
     void (async () => {
+      useAppStore.getState().initSettings(await loadSettings());
       setRecentFiles(await loadRecentFiles());
       const launchPath = pickMarkdownPath(await getLaunchArgs());
       if (launchPath && !disposed) void useAppStore.getState().openPath(launchPath);
@@ -86,9 +92,13 @@ export default function App() {
     };
   }, [setRecentFiles]);
 
-  // 快捷键：Ctrl+S 保存 / Ctrl+O 打开
+  // 快捷键：Ctrl+S 保存 / Ctrl+O 打开 / Esc 关闭设置对话框
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        useAppStore.getState().setSettingsOpen(false);
+        return;
+      }
       if (!event.ctrlKey) return;
       if (event.key === "s") {
         event.preventDefault();
@@ -144,11 +154,11 @@ export default function App() {
       </main>
 
       <footer className="statusbar">
-        <span>{error ? `错误：${error}` : dirty ? "已修改" : "就绪"}</span>
+        <span>{error ? `${t("errorPrefix")}${error}` : dirty ? t("modified") : t("ready")}</span>
         <span className="statusbar__spacer" />
         {mode !== "read" && cursor && (
           <span>
-            行 {cursor.line}, 列 {cursor.col}
+            {t("line")} {cursor.line}, {t("col")} {cursor.col}
           </span>
         )}
         {filePath && encoding && (
@@ -157,11 +167,14 @@ export default function App() {
             {size != null ? ` · ${(size / 1024).toFixed(1)} KB` : ""}
           </span>
         )}
+        <span>{tf("stats", { n: stats.total, l: stats.lines })}</span>
         <span>
-          字数 {stats.total} · 行数 {stats.lines}
+          {theme === "dark" ? t("darkTheme") : t("lightTheme")}
+          {useAppStore.getState().settings.themeMode === "system" ? t("followHint") : ""}
         </span>
-        <span>{theme === "dark" ? "深色主题" : "浅色主题"}（跟随系统）</span>
       </footer>
+
+      <SettingsDialog />
     </div>
   );
 }

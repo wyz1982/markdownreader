@@ -1,6 +1,7 @@
 /* ============================================================
    Markdown 正文排版（GitHub 风格 + 全部扩展语法样式）
-   仅作用于 .markdown-body，颜色全部来自主题变量，与 UI 解耦
+   仅作用于 .markdown-body，颜色全部来自主题变量，与 UI 解耦；
+   字号/行高/字体由设置页通过 CSS 变量控制
    ============================================================ */
 
 .preview-scroll {
@@ -14,8 +15,8 @@
 .markdown-body {
   padding: 20px 28px 56px;
   font-family: var(--font-reading);
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: var(--reading-font-size, 15px);
+  line-height: var(--reading-line-height, 1.75);
   color: var(--text-primary);
   word-wrap: break-word;
 }
@@ -394,4 +395,33 @@
 .markdown-body .md-mermaid--error pre {
   margin-top: 8px;
   font-size: 12px;
+}
+
+/* ---- 打印 / 导出 PDF ---- */
+@media print {
+  .toolbar,
+  .statusbar,
+  .changed-banner,
+  .outline-panel,
+  .editor-col,
+  .workspace__divider {
+    display: none !important;
+  }
+
+  html,
+  body,
+  #root,
+  .app-shell,
+  .workspace,
+  .workspace__pane,
+  .preview-scroll {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .markdown-body {
+    max-width: none;
+    padding: 0;
+    font-size: 12pt;
+  }
 }

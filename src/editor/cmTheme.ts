@@ -28,7 +28,7 @@ export const editorTheme = EditorView.theme(
     "&": {
       color: "var(--text-primary)",
       backgroundColor: "var(--bg-primary)",
-      fontSize: "13px",
+      fontSize: "var(--editor-font-size, 13px)",
       height: "100%",
     },
     ".cm-scroller": {

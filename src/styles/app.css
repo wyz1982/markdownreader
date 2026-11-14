@@ -1,9 +1,18 @@
-/* 应用面板样式（工具栏动作 / 编辑器 / 预览 / 大纲 / 提示条） */
+/* 应用面板样式（工具栏 / 编辑器 / 预览 / 大纲 / 提示条 / 对话框） */
 
 .workspace__pane {
   flex-direction: column;
   align-items: stretch;
   justify-content: stretch;
+}
+
+/* ---- 编辑器 ---- */
+.editor-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .editor-host {
@@ -18,6 +27,34 @@
 
 .editor-host .cm-editor.cm-focused {
   outline: none;
+}
+
+/* ---- 格式工具栏 ---- */
+.format-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.format-bar__btn {
+  min-width: 28px;
+  padding: 3px 7px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.format-bar__btn:hover {
+  background: var(--accent-soft);
+  color: var(--text-primary);
 }
 
 /* ---- 工具栏动作区 ---- */
@@ -47,11 +84,37 @@
   cursor: default;
 }
 
-.toolbar__hint {
-  margin-left: 0;
+/* 三态布局切换 */
+.toolbar__modes {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
 }
 
-/* ---- 最近文件菜单 ---- */
+.toolbar__mode {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.toolbar__mode:hover {
+  color: var(--text-primary);
+}
+
+.toolbar__mode--active {
+  background: var(--bg-primary);
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* ---- 下拉菜单（最近文件 / 导出共用） ---- */
 .recent-menu {
   position: relative;
 }
@@ -197,6 +260,100 @@
 
 .changed-banner__btn--ghost {
   background: transparent;
+}
+
+/* ---- 设置对话框 ---- */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog {
+  width: 440px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+  padding: 18px 20px;
+}
+
+.dialog__title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.dialog__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-primary);
+  padding: 7px 0;
+}
+
+.dialog__input {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 4px 8px;
+  font-size: 12.5px;
+}
+
+.dialog__segment {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-tertiary);
+  border-radius: 7px;
+}
+
+.dialog__seg-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dialog__seg-btn--active {
+  background: var(--bg-primary);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.dialog__shortcuts {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.dialog__section-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
 }
 
 /* ---- 阅读模式排版 ---- */

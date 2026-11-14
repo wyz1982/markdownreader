@@ -61,3 +61,13 @@ export async function saveFileDialog(defaultName: string): Promise<string | null
   });
   return selected;
 }
+
+/** 弹出「导出 HTML」保存对话框 */
+export async function saveExportDialog(defaultName: string): Promise<string | null> {
+  const selected = await save({
+    title: "导出 HTML",
+    defaultPath: defaultName,
+    filters: [{ name: "HTML", extensions: ["html"] }],
+  });
+  return selected;
+}

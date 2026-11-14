@@ -16,6 +16,7 @@ import {
   rectangularSelection,
 } from "@codemirror/view";
 import { editorHighlight, editorTheme } from "./cmTheme";
+import { applyFormat } from "./format";
 import { imageFileFromClipboard } from "./imagePaste";
 import { runListContinuation } from "./listContinuation";
 
@@ -55,8 +56,31 @@ export function createMarkdownEditor(
       EditorView.lineWrapping,
       editorTheme,
       editorHighlight,
-      // 列表/引用续写先于默认回车行为
-      keymap.of([{ key: "Enter", run: runListContinuation }]),
+      // 列表/引用续写与格式化快捷键先于默认行为
+      keymap.of([
+        { key: "Enter", run: runListContinuation },
+        {
+          key: "Mod-b",
+          run: (view) => {
+            applyFormat(view, "bold");
+            return true;
+          },
+        },
+        {
+          key: "Mod-i",
+          run: (view) => {
+            applyFormat(view, "italic");
+            return true;
+          },
+        },
+        {
+          key: "Mod-k",
+          run: (view) => {
+            applyFormat(view, "link");
+            return true;
+          },
+        },
+      ]),
       keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap]),
       markdown({ base: markdownLanguage }),
       EditorView.domEventHandlers({
