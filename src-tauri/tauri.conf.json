@@ -27,6 +27,14 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "fileAssociations": [
+      {
+        "name": "Markdown 文档",
+        "ext": ["md", "markdown", "mdown", "mkd"],
+        "role": "Editor",
+        "description": "使用 MarkDownReader 打开 Markdown 文档"
+      }
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

@@ -23,6 +23,16 @@ export function saveMarkdownFile(path: string, content: string): Promise<void> {
   return invoke<void>("save_file", { path, content });
 }
 
+/** 监视指定文件的外部修改；传 null 停止监视 */
+export function watchFile(path: string | null): Promise<void> {
+  return invoke<void>("watch_file", { path });
+}
+
+/** 获取启动参数（文件关联双击打开时携带的文件路径） */
+export function getLaunchArgs(): Promise<string[]> {
+  return invoke<string[]>("get_launch_args");
+}
+
 /** 弹出系统「打开文件」对话框 */
 export async function openFileDialog(): Promise<string | null> {
   const selected = await open({

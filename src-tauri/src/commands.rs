@@ -1,8 +1,14 @@
-//! 文件读写命令：前端通过 IPC 调用。
+//! 文件读写与文件监视命令：前端通过 IPC 调用。
 //! 读：编码自动检测；写：原子写入（先写临时文件再改名，避免半截文件）。
 
+use notify::Watcher;
 use serde::Serialize;
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::Mutex,
+};
+use tauri::Emitter;
 
 #[derive(Serialize)]
 pub struct ReadFileResult {
@@ -46,5 +52,61 @@ pub fn save_file(path: String, content: String) -> Result<(), String> {
         let _ = fs::remove_file(&tmp_path); // 清理残留
         return Err(format!("保存失败: {e}"));
     }
+    Ok(())
+}
+
+/// 当前被监视的文件。替换 Option 值即自动解除旧监视（RecommendedWatcher 被 drop 时 unwatch）。
+pub struct WatchState(pub Mutex<Option<notify::RecommendedWatcher>>);
+
+/// 应用启动时的命令行参数（文件关联双击打开的场景，前端就绪后主动拉取）
+pub struct LaunchArgs(pub Mutex<Vec<String>>);
+
+#[tauri::command]
+pub fn get_launch_args(state: tauri::State<LaunchArgs>) -> Vec<String> {
+    state.0.lock().expect("launch args 锁").clone()
+}
+
+/// 监视指定文件的外部修改；传 None 停止监视。
+/// 实现上监视其父目录（Windows 单文件监视也是监视父目录），按文件名过滤事件。
+#[tauri::command]
+pub fn watch_file(
+    app: tauri::AppHandle,
+    state: tauri::State<WatchState>,
+    path: Option<String>,
+) -> Result<(), String> {
+    let mut guard = state.0.lock().expect("watch 锁");
+    *guard = None; // 先解除旧监视
+
+    let Some(path) = path else { return Ok(()) };
+    let target = PathBuf::from(&path);
+    let dir = target
+        .parent()
+        .ok_or_else(|| format!("无效路径: {path}"))?
+        .to_path_buf();
+    let file_name = target
+        .file_name()
+        .ok_or_else(|| format!("无效文件名: {path}"))?
+        .to_os_string();
+
+    let app_for_event = app.clone();
+    let mut watcher =
+        notify::recommended_watcher(move |res: Result<notify::Event, notify::Error>| {
+            let Ok(event) = res else { return };
+            let is_modify = matches!(event.kind, notify::event::EventKind::Modify(_));
+            if is_modify
+                && event
+                    .paths
+                    .iter()
+                    .any(|p| p.file_name() == Some(file_name.as_os_str()))
+            {
+                let _ = app_for_event.emit("file-changed-on-disk", path.clone());
+            }
+        })
+        .map_err(|e| format!("启动文件监视失败: {e}"))?;
+
+    watcher
+        .watch(&dir, notify::RecursiveMode::NonRecursive)
+        .map_err(|e| format!("监视目录失败: {e}"))?;
+    *guard = Some(watcher);
     Ok(())
 }
