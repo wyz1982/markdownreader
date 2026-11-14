@@ -16,6 +16,15 @@
   --accent: #0969da;
   --accent-soft: rgba(9, 105, 218, 0.1);
 
+  /* 编辑器语法高亮 */
+  --md-syntax-heading: #0550ae;
+  --md-syntax-code: #cf222e;
+  --md-syntax-quote: #59636e;
+  --md-syntax-link: #0969da;
+  --md-syntax-marker: #8250df;
+  --md-syntax-separator: #d1d9e0;
+  --md-syntax-list: #116329;
+
   /* 字体 */
   --font-ui: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
   --font-reading: var(--font-ui);
@@ -37,6 +46,15 @@
   --text-muted: #6e7681;
   --accent: #4493f8;
   --accent-soft: rgba(68, 147, 248, 0.15);
+
+  /* 编辑器语法高亮 */
+  --md-syntax-heading: #79c0ff;
+  --md-syntax-code: #ffa657;
+  --md-syntax-quote: #8b949e;
+  --md-syntax-link: #4493f8;
+  --md-syntax-marker: #d2a8ff;
+  --md-syntax-separator: #3d444d;
+  --md-syntax-list: #7ee787;
 }
 
 /* ---- 基础重置 ---- */

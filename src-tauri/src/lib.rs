@@ -25,7 +25,8 @@ pub fn run() {
             commands::read_file,
             commands::save_file,
             commands::watch_file,
-            commands::get_launch_args
+            commands::get_launch_args,
+            commands::save_paste_image
         ])
         .setup(|app| {
             // 记录启动参数（文件关联双击打开），前端就绪后主动拉取，避免事件早于监听而丢失

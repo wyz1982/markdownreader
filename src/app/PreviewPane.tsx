@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import { renderMarkdown } from "../renderer";
 import { postprocess } from "../renderer/postprocess";
+import { assignBlockLines } from "../renderer/postprocess/lines";
 import type { AppMode } from "./store";
 import { useAppStore } from "./store";
+import { handlePreviewScroll, registerPreview } from "../editor/scrollSync";
 import "katex/dist/katex.min.css";
 import "../styles/markdown.css";
 
@@ -12,7 +14,7 @@ interface PreviewPaneProps {
   mode: AppMode;
 }
 
-/** 预览面板：markdown-it 渲染 + DOMPurify 消毒 + 后处理（Shiki/Mermaid/TOC）+ 标题 scroll-spy */
+/** 预览面板：渲染 + 消毒 + 后处理 + data-line 标注 + scroll-spy + 滚动同步 */
 export default function PreviewPane({ source, theme, mode }: PreviewPaneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -24,7 +26,7 @@ export default function PreviewPane({ source, theme, mode }: PreviewPaneProps) {
     let cancelled = false;
 
     const timer = window.setTimeout(async () => {
-      const { html, outline } = renderMarkdown(source);
+      const { html, outline, blockLines } = renderMarkdown(source);
       if (cancelled) return;
       el.innerHTML = html;
       useAppStore.getState().setOutline(outline);
@@ -34,6 +36,8 @@ export default function PreviewPane({ source, theme, mode }: PreviewPaneProps) {
         console.error("预览后处理失败:", error);
       }
       if (cancelled) return;
+      // 行号标注放在后处理之后：Shiki/Mermaid 的 DOM 替换会保留元素顺序
+      assignBlockLines(el, blockLines);
       observerRef.current?.disconnect();
       observerRef.current = setupScrollSpy(el, scrollRef.current);
     }, 150);
@@ -43,6 +47,19 @@ export default function PreviewPane({ source, theme, mode }: PreviewPaneProps) {
       window.clearTimeout(timer);
     };
   }, [source, theme]);
+
+  // 滚动同步：注册预览容器并监听滚动
+  useEffect(() => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) return;
+    registerPreview(scrollEl);
+    const onScroll = () => handlePreviewScroll();
+    scrollEl.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      scrollEl.removeEventListener("scroll", onScroll);
+      registerPreview(null);
+    };
+  }, []);
 
   // 卸载时清理观察器
   useEffect(() => () => observerRef.current?.disconnect(), []);

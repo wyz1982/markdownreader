@@ -5,10 +5,10 @@ import { getLaunchArgs, openFileDialog } from "../ipc";
 import { loadRecentFiles } from "./recent";
 import { notifyFileChanged, useAppStore } from "./store";
 import Toolbar from "./Toolbar";
-import EditorPane from "./EditorPane";
 import PreviewPane from "./PreviewPane";
 import OutlinePanel from "./OutlinePanel";
 import ChangedBanner from "./ChangedBanner";
+import EditorPane from "../editor/EditorPane";
 import "../styles/app.css";
 
 type Theme = "light" | "dark";
@@ -46,8 +46,8 @@ export default function App() {
   const filePath = useAppStore((state) => state.filePath);
   const encoding = useAppStore((state) => state.encoding);
   const size = useAppStore((state) => state.size);
+  const cursor = useAppStore((state) => state.cursor);
   const error = useAppStore((state) => state.error);
-  const setSource = useAppStore((state) => state.setSource);
   const setRecentFiles = useAppStore((state) => state.setRecentFiles);
 
   useEffect(() => {
@@ -120,10 +120,15 @@ export default function App() {
         {mode === "split" && (
           <>
             <section className="workspace__pane">
-              <EditorPane value={source} onChange={setSource} />
+              <EditorPane />
             </section>
             <div className="workspace__divider" />
           </>
+        )}
+        {mode === "edit" && (
+          <section className="workspace__pane">
+            <EditorPane />
+          </section>
         )}
         {mode === "read" && (
           <>
@@ -131,14 +136,21 @@ export default function App() {
             <div className="workspace__divider" />
           </>
         )}
-        <section className="workspace__pane">
-          <PreviewPane source={source} theme={theme} mode={mode} />
-        </section>
+        {mode !== "edit" && (
+          <section className="workspace__pane">
+            <PreviewPane source={source} theme={theme} mode={mode} />
+          </section>
+        )}
       </main>
 
       <footer className="statusbar">
         <span>{error ? `错误：${error}` : dirty ? "已修改" : "就绪"}</span>
         <span className="statusbar__spacer" />
+        {mode !== "read" && cursor && (
+          <span>
+            行 {cursor.line}, 列 {cursor.col}
+          </span>
+        )}
         {filePath && encoding && (
           <span>
             {encoding}

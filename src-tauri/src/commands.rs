@@ -55,6 +55,22 @@ pub fn save_file(path: String, content: String) -> Result<(), String> {
     Ok(())
 }
 
+/// 保存粘贴的图片到文档同目录 assets/，返回 Markdown 可用的相对路径
+#[tauri::command]
+pub fn save_paste_image(dir: String, file_name: String, bytes: Vec<u8>) -> Result<String, String> {
+    if file_name.contains('/') || file_name.contains('\\') || file_name.contains("..") {
+        return Err(format!("非法文件名: {file_name}"));
+    }
+    if bytes.is_empty() {
+        return Err("空图片数据".to_string());
+    }
+    let assets = Path::new(&dir).join("assets");
+    fs::create_dir_all(&assets).map_err(|e| format!("创建 assets 目录失败: {e}"))?;
+    let target = assets.join(&file_name);
+    fs::write(&target, &bytes).map_err(|e| format!("写入图片失败: {e}"))?;
+    Ok(format!("assets/{file_name}"))
+}
+
 /// 当前被监视的文件。替换 Option 值即自动解除旧监视（RecommendedWatcher 被 drop 时 unwatch）。
 pub struct WatchState(pub Mutex<Option<notify::RecommendedWatcher>>);
 

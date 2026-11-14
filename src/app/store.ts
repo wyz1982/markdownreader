@@ -1,12 +1,20 @@
 // 应用全局状态（Zustand）：文件、编辑、模式、大纲、最近文件、磁盘变更提示
 import { create } from "zustand";
+import type { EditorView } from "@codemirror/view";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import sampleDoc from "../sample/sample.md?raw";
 import type { OutlineItem } from "../renderer/outline";
-import { readMarkdownFile, saveFileDialog, saveMarkdownFile, watchFile } from "../ipc";
+import {
+  readMarkdownFile,
+  saveFileDialog,
+  saveMarkdownFile,
+  savePasteImage,
+  watchFile,
+} from "../ipc";
+import { imageExtFromMime, pasteImageName } from "../editor/imagePaste";
 import { pushRecentFile } from "./recent";
 
-export type AppMode = "read" | "split";
+export type AppMode = "read" | "split" | "edit";
 
 interface AppState {
   filePath: string | null;
@@ -18,6 +26,7 @@ interface AppState {
   outline: OutlineItem[];
   activeSlug: string | null;
   recentFiles: string[];
+  cursor: { line: number; col: number } | null;
   /** 文件在磁盘上被外部修改（显示重载提示条） */
   changedOnDisk: boolean;
   error: string | null;
@@ -28,9 +37,11 @@ interface AppState {
   setSource(source: string): void;
   save(): Promise<void>;
   reloadFromDisk(): Promise<void>;
+  savePastedImage(file: File, view: EditorView): Promise<void>;
   setMode(mode: AppMode): void;
   setOutline(outline: OutlineItem[]): void;
   setActiveSlug(slug: string): void;
+  setCursor(cursor: { line: number; col: number } | null): void;
   setRecentFiles(list: string[]): void;
   dismissChanged(): void;
 }
@@ -58,6 +69,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   outline: [],
   activeSlug: null,
   recentFiles: [],
+  cursor: null,
   changedOnDisk: false,
   error: null,
   suppressChangedUntil: 0,
@@ -74,6 +86,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
         changedOnDisk: false,
         error: null,
         activeSlug: null,
+        cursor: null,
       });
       set({ recentFiles: await pushRecentFile(result.path) });
       await watchFile(result.path);
@@ -115,6 +128,31 @@ export const useAppStore = create<AppState>()((set, get) => ({
     if (filePath) await get().openPath(filePath);
   },
 
+  /** 粘贴图片：写入文档同目录 assets/ 并在光标处插入相对引用 */
+  async savePastedImage(file, view) {
+    const { filePath } = get();
+    if (!filePath) {
+      set({ error: "请先保存文档（Ctrl+S）后再粘贴图片" });
+      return;
+    }
+    try {
+      const dir = filePath.replace(/[\\/][^\\/]+$/, "");
+      const ext = imageExtFromMime(file.type || "image/png");
+      const name = `${pasteImageName()}.${ext}`;
+      const bytes = Array.from(new Uint8Array(await file.arrayBuffer()));
+      const relative = await savePasteImage(dir, name, bytes);
+      const pos = view.state.selection.main.head;
+      const insert = `![${file.name || "图片"}](${relative})`;
+      view.dispatch({
+        changes: { from: pos, insert },
+        selection: { anchor: pos + insert.length },
+      });
+      set({ error: null });
+    } catch (error) {
+      set({ error: String(error) });
+    }
+  },
+
   setMode(mode) {
     set({ mode });
   },
@@ -123,6 +161,9 @@ export const useAppStore = create<AppState>()((set, get) => ({
   },
   setActiveSlug(activeSlug) {
     set({ activeSlug });
+  },
+  setCursor(cursor) {
+    set({ cursor });
   },
   setRecentFiles(recentFiles) {
     set({ recentFiles });

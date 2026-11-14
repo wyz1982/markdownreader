@@ -33,6 +33,11 @@ export function getLaunchArgs(): Promise<string[]> {
   return invoke<string[]>("get_launch_args");
 }
 
+/** 保存粘贴的图片到文档同目录 assets/，返回相对引用路径 */
+export function savePasteImage(dir: string, fileName: string, bytes: number[]): Promise<string> {
+  return invoke<string>("save_paste_image", { dir, fileName, bytes });
+}
+
 /** 弹出系统「打开文件」对话框 */
 export async function openFileDialog(): Promise<string | null> {
   const selected = await open({
